@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Weekly Hours Tracker</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f4f6f8;
+            padding: 32px;
+        }
+        .container {
+            max-width: 520px;
+            margin: auto;
+            background: #fff;
+            padding: 32px 28px 24px 28px;
+            border-radius: 14px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 28px;
+            font-size: 2rem;
+            color: #333;
+        }
+        .settings {
+            display: flex;
+            gap: 18px;
+            margin-bottom: 24px;
+            justify-content: space-between;
+            flex-wrap: wrap; /* allow wrapping on small screens */
+        }
+        .settings > div {
+            flex: 1 1 0;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .settings label {
+            font-size: 0.98rem;
+            color: #555;
+            margin-bottom: 2px;
+        }
+        .settings input[type="number"] {
+            padding: 7px 8px;
+            border: 1px solid #cfd8dc;
+            border-radius: 5px;
+            font-size: 1rem;
+            background: #f8fafb;
+            width: 100%;
+            box-sizing: border-box;
+            min-width: 0;
+            max-width: 100%;
+        }
+        #days {
+            margin-top: 10px;
+        }
+        .row {
+            display: grid;
+            grid-template-columns: 110px 70px 70px 1fr;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 6px;
+            background: #f7fafd;
+            border-radius: 6px;
+            padding: 7px 0 7px 10px;
+        }
+        .row label {
+            font-size: 1rem;
+            color: #444;
+        }
+        .row input[type="number"] {
+            width: 100%;
+            padding: 6px 5px;
+            border: 1px solid #cfd8dc;
+            border-radius: 4px;
+            background: #fff;
+            font-size: 1rem;
+            box-sizing: border-box;
+            min-width: 0;
+            max-width: 100%;
+        }
+        .bar-container {
+            background: #e0e0e0;
+            height: 16px;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            margin-right: 0;
+            min-width: 100px;
+            width: 100%;
+            max-width: none;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+        }
+        .bar-fill {
+            height: 100%;
+            width: 0%;
+            background: #4caf50;
+            transition: width 0.3s;
+            border-radius: 8px 0 0 8px;
+        }
+        .min-marker {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            width: 3px;
+            background: #e53935;
+            opacity: 0.7;
+            border-radius: 2px;
+        }
+        .warning {
+            color: #e53935;
+            font-size: 0.93rem;
+            margin-left: 120px;
+            margin-bottom: 2px;
+            display: none;
+        }
+        .global-warning {
+            color: #e53935;
+            font-weight: bold;
+            margin-top: 12px;
+            text-align: center;
+            display: none;
+        }
+        .summary {
+            margin-top: 22px;
+            padding: 14px 18px;
+            background: #f1f6fa;
+            border-radius: 7px;
+            font-weight: 500;
+            font-size: 1.08rem;
+            color: #222;
+            text-align: center;
+        }
+        @media (max-width: 600px) {
+            .container { padding: 12px 4px; }
+            .settings { flex-direction: column; gap: 10px; }
+            .row { grid-template-columns: 1fr 1fr 1fr 2fr; padding-left: 2px;}
+            .warning { margin-left: 0; }
+            .bar-container { min-width: 60px; max-width: none; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Weekly Hours Tracker</h1>
+    <div class="settings">
+        <div>
+            <label for="targetHours">Target Hours</label>
+            <input type="number" id="targetHours" value="40" min="0">
+        </div>
+        <div>
+            <label for="minHours">Min Hours / Day</label>
+            <input type="number" id="minHours" value="6" min="0">
+        </div>
+        <div>
+            <label for="maxHours">Max Hours / Day</label>
+            <input type="number" id="maxHours" value="16" min="1">
+        </div>
+    </div>
+    <hr>
+    <div id="days"></div>
+    <div class="global-warning" id="targetWarning">
+        ❌ Weekly total exceeds target hours
+    </div>
+    <div class="summary">
+        <p id="totalTime"></p>
+        <p id="remainingTime"></p>
+    </div>
+</div>
+<script>
+    const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+    const daysContainer = document.getElementById("days");
+
+    function renderDays() {
+        daysContainer.innerHTML = "";
+        const minHrs = parseInt(minHours.value) || 0;
+        days.forEach(day => {
+            const block = document.createElement("div");
+            block.innerHTML = `
+        <div class="row">
+          <label>${day}</label>
+          <input type="number" class="hours" min="0" value="${minHrs}">
+          <input type="number" class="minutes" min="0" max="59" value="0">
+          <div class="bar-container">
+            <div class="min-marker"></div>
+            <div class="bar-fill"></div>
+          </div>
+        </div>
+        <div class="warning"></div>
+      `;
+            daysContainer.appendChild(block);
+        });
+    }
+
+    renderDays();
+    document.addEventListener("input", calculate);
+    calculate();
+
+    function calculate() {
+        const target = parseInt(targetHours.value) || 0;
+        const minHrs = parseInt(minHours.value) || 0;
+        const maxHrs = parseInt(maxHours.value) || 1;
+        let totalMinutes = 0;
+        document.querySelectorAll("#days > div").forEach(day => {
+            const hrs = parseInt(day.querySelector(".hours").value) || 0;
+            const mins = parseInt(day.querySelector(".minutes").value) || 0;
+            const bar = day.querySelector(".bar-fill");
+            const warning = day.querySelector(".warning");
+            const marker = day.querySelector(".min-marker");
+            const dayMinutes = hrs * 60 + mins;
+            totalMinutes += dayMinutes;
+            const percent = Math.min(dayMinutes / (maxHrs * 60), 1) * 100;
+            bar.style.width = percent + "%";
+            marker.style.left = (minHrs / maxHrs) * 100 + "%";
+            if (dayMinutes < minHrs * 60) {
+                bar.style.background = "#ff9800";
+                warning.textContent = `Below minimum (${minHrs}h)`;
+                warning.style.display = "block";
+            } else if (dayMinutes > maxHrs * 60) {
+                bar.style.background = "#e53935";
+                warning.textContent = `Above maximum (${maxHrs}h)`;
+                warning.style.display = "block";
+            } else {
+                bar.style.background = "#4caf50";
+                warning.style.display = "none";
+            }
+        });
+        document.getElementById("totalTime").textContent =
+            `Total Logged: ${Math.floor(totalMinutes / 60)} hrs ${totalMinutes % 60} mins`;
+        const remaining = target * 60 - totalMinutes;
+        document.getElementById("remainingTime").textContent =
+            `Remaining: ${Math.max(Math.floor(remaining / 60), 0)} hrs ${Math.max(remaining % 60, 0)} mins`;
+        document.getElementById("targetWarning").style.display =
+            remaining < 0 ? "block" : "none";
+    }
+    minHours.addEventListener("change", renderDays);
+</script>
+</body>
+</html>
