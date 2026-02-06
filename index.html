@@ -1,9 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weekly Hours Tracker</title>
     <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
         body {
             font-family: 'Segoe UI', Arial, sans-serif;
             background: #f4f6f8;
@@ -136,11 +139,47 @@
             text-align: center;
         }
         @media (max-width: 600px) {
-            .container { padding: 12px 4px; }
-            .settings { flex-direction: column; gap: 10px; }
-            .row { grid-template-columns: 1fr 1fr 1fr 2fr; padding-left: 2px;}
-            .warning { margin-left: 0; }
-            .bar-container { min-width: 60px; max-width: none; }
+            body {
+                padding: 0;
+            }
+
+            .container {
+                margin: 0;
+                width: 100%;
+                border-radius: 0;
+            }
+
+            /* 🔥 KEY FIX */
+            .row {
+                grid-template-columns: 1fr 1fr 1fr;
+                grid-template-areas:
+            "day hours minutes"
+            "bar bar bar";
+                row-gap: 8px;
+                padding-right: 10px;
+            }
+
+            .row label {
+                grid-area: day;
+            }
+
+            .row .hours {
+                grid-area: hours;
+            }
+
+            .row .minutes {
+                grid-area: minutes;
+            }
+
+            .bar-container {
+                grid-area: bar;
+                height: 18px;
+            }
+
+            .warning,
+            .minute-warning {
+                margin-left: 0;
+            }
         }
     </style>
 </head>
