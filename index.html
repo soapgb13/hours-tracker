@@ -177,6 +177,20 @@
 
     function renderDays() {
         daysContainer.innerHTML = "";
+
+        // Add header row for Hours and Minutes
+        const headerRow = document.createElement("div");
+        headerRow.className = "row";
+        headerRow.style.fontWeight = "bold";
+        headerRow.style.background = "transparent";
+        headerRow.innerHTML = `
+            <span></span>
+            <span>Hours</span>
+            <span>Minutes</span>
+            <span></span>
+        `;
+        daysContainer.appendChild(headerRow);
+
         const minHrs = parseInt(minHours.value) || 0;
         days.forEach(day => {
             const block = document.createElement("div");
@@ -217,7 +231,10 @@
         const minHrs = parseInt(minHours.value) || 0;
         const maxHrs = parseInt(maxHours.value) || 1;
         let totalMinutes = 0;
-        document.querySelectorAll("#days > div").forEach(day => {
+        const dayBlocks = document.querySelectorAll("#days > div");
+        // Skip the first div (header row)
+        for (let i = 1; i < dayBlocks.length; i++) {
+            const day = dayBlocks[i];
             const hrs = parseInt(day.querySelector(".hours").value) || 0;
             const mins = parseInt(day.querySelector(".minutes").value) || 0;
             const bar = day.querySelector(".bar-fill");
@@ -240,7 +257,7 @@
                 bar.style.background = "#4caf50";
                 warning.style.display = "none";
             }
-        });
+        }
         document.getElementById("totalTime").textContent =
             `Total Logged: ${Math.floor(totalMinutes / 60)} hrs ${totalMinutes % 60} mins`;
         const remaining = target * 60 - totalMinutes;
@@ -249,7 +266,10 @@
         document.getElementById("targetWarning").style.display =
             remaining < 0 ? "block" : "none";
     }
-    minHours.addEventListener("change", renderDays);
+    minHours.addEventListener("change", function() {
+        renderDays();
+        calculate();
+    });
 </script>
 </body>
 </html>
