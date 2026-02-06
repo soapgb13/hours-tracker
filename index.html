@@ -149,7 +149,29 @@
                 border-radius: 0;
             }
 
-            /* 🔥 KEY FIX */
+            /* Compact settings grid */
+            .settings {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px 12px;
+            }
+
+            /* Make last item full width */
+            .settings > div:last-child {
+                grid-column: span 2;
+            }
+
+            .settings label {
+                font-size: 0.9rem;
+            }
+
+            .settings input[type="number"] {
+                height: 38px;
+                padding: 6px 8px;
+                font-size: 0.95rem;
+            }
+
+            /* Existing row fix */
             .row {
                 grid-template-columns: 1fr 1fr 1fr;
                 grid-template-areas:
