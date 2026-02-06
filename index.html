@@ -198,13 +198,14 @@
         <div class="row">
           <label>${day}</label>
           <input type="number" class="hours" min="0" value="${minHrs}">
-          <input type="number" class="minutes" min="0" max="55" step="5" value="0">
+          <input type="number" class="minutes" min="0" value="0">
           <div class="bar-container">
             <div class="min-marker"></div>
             <div class="bar-fill"></div>
           </div>
         </div>
         <div class="warning"></div>
+        <div class="minute-warning" style="color:#e53935;font-size:0.93rem;margin-left:120px;display:none;"></div>
       `;
             daysContainer.appendChild(block);
         });
@@ -213,14 +214,10 @@
     renderDays();
     document.addEventListener("input", calculate);
 
-    // Enforce minutes input to be in increments of 5 and less than 60
+    // Remove minute input enforcement, only show warning
     document.addEventListener("input", function(e) {
         if (e.target && e.target.classList.contains("minutes")) {
-            let val = parseInt(e.target.value) || 0;
-            if (val > 55) val = 55;
-            val = Math.round(val / 5) * 5;
-            if (val < 0) val = 0;
-            e.target.value = val;
+            calculate(); // trigger warning update
         }
     });
 
@@ -240,6 +237,19 @@
             const bar = day.querySelector(".bar-fill");
             const warning = day.querySelector(".warning");
             const marker = day.querySelector(".min-marker");
+            const minuteWarning = day.querySelector(".minute-warning");
+            // Minute validation
+            if (
+                mins < 0 ||
+                mins >= 60 ||
+                mins % 5 !== 0
+            ) {
+                minuteWarning.textContent = "Minutes must be 0, 5, 10, ..., 55 and less than 60.";
+                minuteWarning.style.display = "block";
+            } else {
+                minuteWarning.textContent = "";
+                minuteWarning.style.display = "none";
+            }
             const dayMinutes = hrs * 60 + mins;
             totalMinutes += dayMinutes;
             const percent = Math.min(dayMinutes / (maxHrs * 60), 1) * 100;
